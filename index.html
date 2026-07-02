@@ -178,7 +178,7 @@
             border-color: #c29aff;
         }
 
-        /* REPRODUCTOR DE VIDEO */
+        /* REPRODUCTOR DE VIDEO (YouTube iframe) */
         .video-wrapper {
             margin-top: 1.8rem;
             border-radius: 2.2rem;
@@ -187,15 +187,19 @@
             box-shadow: 0 8px 30px rgba(60, 20, 120, 0.5);
             border: 1px solid rgba(130, 80, 200, 0.3);
             transition: all 0.3s ease;
+            position: relative;
+            padding-bottom: 56.25%; /* Relación de aspecto 16:9 */
+            height: 0;
         }
 
-        .video-wrapper video {
-            display: block;
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            aspect-ratio: 16 / 9;
-            background-color: #0a0810;
-            object-fit: cover;
+            height: 100%;
+            border: 0;
+            display: block;
         }
 
         /* pie de video (minimal) */
@@ -208,6 +212,8 @@
             font-size: 0.85rem;
             color: #a886cf;
             border-top: 1px solid rgba(110, 60, 180, 0.2);
+            margin-top: -4px; /* Para que quede pegado al iframe */
+            border-radius: 0 0 2.2rem 2.2rem;
         }
 
         .video-caption span {
@@ -289,18 +295,19 @@
             </button>
         </div>
 
-        <!-- REPRODUCTOR DE VIDEO (dentro del mismo documento) -->
+        <!-- REPRODUCTOR DE VIDEO (YouTube iframe) -->
         <div class="video-wrapper" id="videoWrapper">
-            <video id="videoElement" controls preload="metadata" playsinline>
-                <!-- CAMBIO REALIZADO: Ahora apunta a tu archivo local -->
-                <source src="mi-video.mp4" type="video/mp4">
-                <!-- fallback -->
-                Tu navegador no soporta el elemento video.
-            </video>
-            <div class="video-caption">
-                <span><i>🎬</i> Video del resultado · "When We Disco" </span>
-                <span><i>⏵</i> click en el botón para enfocar</span>
-            </div>
+            <iframe 
+                id="youtubeIframe"
+                src="https://www.youtube.com/embed/eF0BYHGzuQk?enablejsapi=1&rel=0"
+                title="MOCAP_proyecto final"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+            </iframe>
+        </div>
+        <div class="video-caption">
+            <span><i>🎬</i> Video del resultado · "When We Disco" </span>
+            <span><i>⏵</i> click en el botón para enfocar</span>
         </div>
 
         <!-- pequeño pie de menú (opcional) -->
@@ -316,53 +323,43 @@
             // Elementos
             const btnDoc = document.getElementById('btnDocumentacion');
             const btnVideo = document.getElementById('btnVideo');
-            const video = document.getElementById('videoElement');
             const videoWrapper = document.getElementById('videoWrapper');
+            const iframe = document.getElementById('youtubeIframe');
+
+            // Botón Documentación
             btnDoc.addEventListener('click', function(e) {
-                
-                e.preventDefault(); // quitamos para que funcione el href
-                // Si deseas que realmente vaya a la página principal (documentación)
-                // cambia el href en el HTML o aquí:
                 e.preventDefault();
-                const urlDoc = "https://invitacion20diciembre2025.my.canva.site/proyecto-itiad"; // cambiar por la real
+                const urlDoc = "https://invitacion20diciembre2025.my.canva.site/proyecto-itiad";
                 window.open(urlDoc, "_blank");
-                // También podemos mostrar un mensaje.
-                // alert("Redirigiendo a la documentación del proyecto.");
             });
 
-            // --- BOTÓN 2: Reproducir y abrir video (enfocar y reproducir) ---
+            // --- BOTÓN 2: Enfocar el video (desplazar y recargar el iframe para reproducir) ---
             btnVideo.addEventListener('click', function(e) {
                 e.preventDefault();
+
                 // 1. Desplazar suavemente al video
                 videoWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // 2. Reproducir el video (si está pausado)
-                if (video.paused) {
-                    video.play().catch(function(err) {
-                        console.warn("No se pudo reproducir automáticamente: ", err);
-                        video.focus();
-                    });
+
+                // 2. Recargar el iframe para iniciar la reproducción (solución para móviles)
+                // y agregar 'autoplay=1' al src
+                const currentSrc = iframe.src;
+                if (currentSrc.includes('autoplay=1')) {
+                    // Si ya tiene autoplay, solo recargamos
+                    iframe.src = iframe.src;
                 } else {
-            
-                    video.currentTime = 0;
-                    video.play().catch(() => {});
+                    // Agregamos autoplay
+                    iframe.src = currentSrc + '&autoplay=1';
                 }
-                // Dar foco al video para controles de teclado
-                video.focus();
-                // Resaltar brevemente el wrapper
+
+                // 3. Dar foco al wrapper
+                videoWrapper.focus();
+
+                // 4. Resaltar brevemente el wrapper
                 videoWrapper.style.transition = 'box-shadow 0.2s';
                 videoWrapper.style.boxShadow = '0 0 0 3px #9f6fe0, 0 10px 40px #6a2b9e';
                 setTimeout(() => {
                     videoWrapper.style.boxShadow = '0 8px 30px rgba(60, 20, 120, 0.5)';
                 }, 800);
-            });
-
-            // Si el video se reproduce, mostramos un pequeño indicio (opcional)
-            video.addEventListener('play', function() {
-                // Podemos agregar un efecto visual
-                videoWrapper.style.borderColor = '#b082e6';
-            });
-            video.addEventListener('pause', function() {
-                videoWrapper.style.borderColor = 'rgba(130, 80, 200, 0.3)';
             });
         })();
     </script>
